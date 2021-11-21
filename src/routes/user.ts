@@ -10,7 +10,7 @@ import fileUpload from "express-fileupload";
 import express from "express";
 import uniqid from "uniqid";
 import fse from "fs-extra";
-import copyfiles from "copyfiles";
+import copydir from "copy-dir";
 import { subirImg } from "../utils/subirImg";
 
 
@@ -237,9 +237,35 @@ userRoutes.put("/upload-img/:id",[fileUploadUpload] ,async (req: any, res: Respo
     
     const idUnico = uniqid();
     const nombreImagenPersonalizado = `${idUnico}.${extensionArchivo}`;
-    const path = `./uploads/${nombreImagenPersonalizado}`;
+    const Path = `./uploads/${nombreImagenPersonalizado}`;
+  
+    // copydir(path, '../../dist/uploads', {
+    //   utimes: true,  // keep add time and modify time
+    //   mode: true,    // keep file mode
+    //   cover: true    // cover file when exists, default is true
+    // }, function(err){
+    //   if(err) throw err;
+    //   console.log('done');
+    // });
 
-    nombreArchivo.mv(path, (err: any) => {
+    // const currentPath = path.join(__dirname, `../../../uploads/${nombreImagenPersonalizado}`);
+    // const destinationPath = path.join(__dirname, "../../dist/uploads/"+ nombreImagenPersonalizado);
+    // console.log({__dirname,currentPath, destinationPath})
+    // var source = fileSystem.createReadStream(currentPath);
+    // var dest = fileSystem.createWriteStream(destinationPath);
+    
+    // source.pipe(dest);
+    // source.on('end', function() { /* copied */ });
+    // source.on('error', function(err) { /* error */ });
+    // fileSystem.rename(currentPath, destinationPath, function (err) {
+    //     if (err) {
+    //         throw err
+    //     } else {
+    //         console.log("Successfully moved the file!");
+    //     }
+    // });
+
+    nombreArchivo.mv(Path, (err: any) => {
       if (err) {
         console.log({err})
         return res.status(500).json({
@@ -248,6 +274,7 @@ userRoutes.put("/upload-img/:id",[fileUploadUpload] ,async (req: any, res: Respo
             errors: err
         });
       }
+      
       subirImg( id, nombreImagenPersonalizado, res);
     });
   
@@ -266,7 +293,9 @@ userRoutes.get("/get-img-user/:imagen", (req, res, next) => {
   try {
  
     // Creacion del path  __dirname(toda la ruta donde se encuentra en este momento), `referencia a donde se encuentra la imagen`
-    const pathImagen = path.resolve(__dirname, `../../../uploads/${imagen}`); // Resolver el path para que siempre quede correcto, tipoImagen = usuarios / estudiantes, imagen = nombre de imagen
+    // const pathImagen = path.resolve(__dirname, `../../../uploads/${imagen}`); // Resolver el path para que siempre quede correcto, tipoImagen = usuarios / estudiantes, imagen = nombre de imagen
+    const pathImagen = path.resolve(__dirname, `../../uploads/${imagen}`); // Resolver el path para que siempre quede correcto, tipoImagen = usuarios / estudiantes, imagen = nombre de imagen
+    console.log({__dirname,pathImagen})
     if (fileSystem.existsSync(pathImagen)) {
       return res.sendFile(pathImagen);
     } else {

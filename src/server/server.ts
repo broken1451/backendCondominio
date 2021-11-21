@@ -4,6 +4,7 @@ import morgan from "morgan";
 import userRoutes from "../routes/user";
 import admRoutes from '../routes/administracion';
 import personRoutes from '../routes/person';
+import ServiciosAdmRoutes from '../routes/serviciosAdm';
 
 export default class Server {
   public app: express.Application;
@@ -26,5 +27,6 @@ export default class Server {
     this.app.use("/api", userRoutes);
     this.app.use("/api", admRoutes);
     this.app.use("/api", personRoutes);
+    this.app.use("/api", ServiciosAdmRoutes);
   }
 }

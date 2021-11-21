@@ -11,18 +11,18 @@ personRoutes.get("/person", async (req: any, res: Response) => {
   try {
     let desde = req.query.desde || 0;
     desde = Number(desde);
-    const adms = await Person.find({})
+    const personas = await Person.find({})
       .skip(desde)
       .limit(5)
       .populate("usuario")
       .populate("administracion")
       .exec();
-    const admsNumbers = await Person.countDocuments({});
+    const personNumbers = await Person.countDocuments({});
     return res.status(200).json({
       ok: true,
       mensaje: "Todo funciona bien",
-      adms,
-      admsNumbers,
+      personas,
+      personNumbers,
     });
   } catch (error) {
     console.log(error);
@@ -43,12 +43,12 @@ personRoutes.post(
           usuario: req.usuario,
           administracion: req.adm,
         };
-        const admCreated = await Person.create(person);
-        const token = Token.getJwtToken(admCreated);
+        const personCreated = await Person.create(person);
+        const token = Token.getJwtToken(personCreated);
         return res.status(201).json({
           ok: true,
-          message: "adm guardado",
-          admCreated,
+          message: "person guardado",
+          personCreated,
           token,
         });
       } else {
@@ -66,5 +66,77 @@ personRoutes.post(
     }
   }
 );
+
+personRoutes.put("/update-person/:id", async (req: any, res: Response) => {
+  const { id } = req.params;
+  try {
+    const { name, salary } = req.body;
+    const personUpdate: any = await Person.findById(id).exec();
+    if (personUpdate) {
+      if (!validator.isEmpty(name)) {
+        personUpdate.salary = salary || "";
+        personUpdate.name = name || "";
+        const personSaved = await personUpdate.save();
+        return res.status(200).json({
+          ok: true,
+          mensaje: "Person Actualizado exitosamente",
+          personSaved,
+        });
+      } else {
+        return res.status(400).json({
+          ok: false,
+          message: "Los datos no son validos",
+          error: {
+            errors: {
+              message: "Se debe ingresar al menos el name del usuario.",
+            },
+          },
+        });
+      }
+    } else {
+      return res.status(400).json({
+        ok: true,
+        mensaje: "La persona con el " + id + "no existe",
+        errors: { message: "No existe la persona con ese ID" },
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      mensaje: "La persona con el id " + id + " no existe",
+      errors: { message: "No existe un usuario con ese ID" },
+    });
+  }
+    
+});
+
+personRoutes.delete("/delete-person/:id", async (req: any, res: Response) => {
+  const { id } = req.params;
+  try {
+    const personDeleted: any = await Person.findByIdAndRemove(id).exec();
+    if (personDeleted) {
+      res.status(204).json({
+        ok: true,
+        mensaje: "Adm eiminado exitosamente",
+        personDeleted,
+      });
+      return [];
+    } else {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "La persona con el " + id + " ya no existe",
+        errors: { message: "No existe una persona con ese ID" },
+        adm: []
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      mensaje: "La persona con el id " + id + " no existe",
+      errors: { message: "No existe una persona con ese ID" },
+      error,
+    });
+  }
+});
 
 export default personRoutes;

@@ -34,7 +34,7 @@ admRoutes.post(
   async (req: any, res: Response) => {
     console.log({ user: req.usuario });
     try {
-      const { salary, vacaciones, enfermedad } = req.body;
+      const { salary, vacaciones, enfermedad, leyesSociales, administracion, seguroRentaNacional,cuerpoBomberos,gastosNotariales,otrosGastos,type} = req.body;
       if (
         !validator.isEmpty(salary) &&
         !validator.isEmpty(vacaciones) &&
@@ -44,6 +44,13 @@ admRoutes.post(
           salary,
           vacaciones,
           enfermedad,
+          leyesSociales,
+          administracion,
+          seguroRentaNacional,
+          cuerpoBomberos,
+          gastosNotariales,
+          otrosGastos,
+          type,
           usuario: req.usuario,
         };
         const admCreated = await Administracion.create(adm);
@@ -69,5 +76,85 @@ admRoutes.post(
     }
   }
 );
+
+admRoutes.put("/update-adm/:id", async (req: any, res: Response) => {
+  const { id } = req.params;
+  try {
+    const { salary, vacaciones, enfermedad, leyesSociales, administracion, seguroRentaNacional,cuerpoBomberos,gastosNotariales,otrosGastos} = req.body;
+    const admUpdate: any = await Administracion.findById(id).exec();
+    if (admUpdate) {
+      if (!validator.isEmpty(salary)) {
+        admUpdate.salary = salary || "";
+        admUpdate.vacaciones = vacaciones || "";
+        admUpdate.enfermedad = enfermedad || "";
+        admUpdate.leyesSociales = leyesSociales || "";
+        admUpdate.administracion = administracion || "";
+        admUpdate.seguroRentaNacional = seguroRentaNacional || "";
+        admUpdate.cuerpoBomberos = cuerpoBomberos || "";
+        admUpdate.gastosNotariales = gastosNotariales || "";
+        admUpdate.otrosGastos = otrosGastos || "";
+        const admSaved = await admUpdate.save();
+        return res.status(200).json({
+          ok: true,
+          mensaje: "Adm Actualizado exitosamente",
+          admSaved,
+        });
+      } else {
+        return res.status(400).json({
+          ok: false,
+          message: "Los datos no son validos",
+          error: {
+            errors: {
+              message: "Se debe ingresar al menos el salario del usuario.",
+            },
+          },
+        });
+      }
+    } else {
+      return res.status(400).json({
+        ok: true,
+        mensaje: "La adm con el " + id + "no existe",
+        errors: { message: "No existe la Adm con ese ID" },
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      mensaje: "La adm con el id " + id + " no existe",
+      errors: { message: "No existe un usuario con ese ID" },
+    });
+  }
+    
+});
+
+
+admRoutes.delete("/delete-adm/:id", async (req: any, res: Response) => {
+  const { id } = req.params;
+  try {
+    const admDeleted: any = await Administracion.findByIdAndRemove(id).exec();
+    if (admDeleted) {
+      res.status(204).json({
+        ok: true,
+        mensaje: "Adm eiminado exitosamente",
+        admDeleted,
+      });
+      return [];
+    } else {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "La adm con el " + id + " ya no existe",
+        errors: { message: "No existe una adm con ese ID" },
+        adm: []
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      mensaje: "La adm con el id " + id + " no existe",
+      errors: { message: "No existe una adm con ese ID" },
+      error,
+    });
+  }
+});
 
 export default admRoutes;

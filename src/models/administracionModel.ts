@@ -13,6 +13,10 @@ const administracionSchema = new mongoose.Schema(
         ref: 'users', 
         required: [ true, 'El id users es un campo obligatorio'] 
     },
+    type:{
+        type: String,
+        required: [true, "El tipo es requerido"],
+    },
     vacaciones: {
         type: String,
     },
