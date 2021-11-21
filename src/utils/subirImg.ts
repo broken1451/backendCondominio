@@ -1,18 +1,11 @@
 import { Usuario } from "../models/userModel";
 import fileSystem from "fs";
 import { Response } from "express";
-import copydir from "copy-dir";
+import fs from 'fs-extra';
 
-
-const borrarImg = (path: any) => {
+const borrarImg = async (path: any) => {
   console.log('path', {path})
-  // copydir(path, '../../dist/uploads', function(err){
-  //   console.log('path 3333', {__dirname})
-  //     if(err) throw err;
-  //     console.log('done');
-  // });
-
-  if (fileSystem.existsSync(path)) {
+  if (fileSystem.existsSync(path)) { 
     fileSystem.unlinkSync(path);
   }
 };

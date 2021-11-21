@@ -14,6 +14,7 @@ import copydir from "copy-dir";
 import { subirImg } from "../utils/subirImg";
 
 
+
 const userRoutes = Router();
 const app = express();
 const fileUploadUpload = fileUpload();
@@ -274,7 +275,6 @@ userRoutes.put("/upload-img/:id",[fileUploadUpload] ,async (req: any, res: Respo
             errors: err
         });
       }
-      
       subirImg( id, nombreImagenPersonalizado, res);
     });
   
@@ -294,7 +294,7 @@ userRoutes.get("/get-img-user/:imagen", (req, res, next) => {
  
     // Creacion del path  __dirname(toda la ruta donde se encuentra en este momento), `referencia a donde se encuentra la imagen`
     // const pathImagen = path.resolve(__dirname, `../../../uploads/${imagen}`); // Resolver el path para que siempre quede correcto, tipoImagen = usuarios / estudiantes, imagen = nombre de imagen
-    const pathImagen = path.resolve(__dirname, `../../uploads/${imagen}`); // Resolver el path para que siempre quede correcto, tipoImagen = usuarios / estudiantes, imagen = nombre de imagen
+    const pathImagen = path.resolve(__dirname, `../../../uploads/${imagen}`); // Resolver el path para que siempre quede correcto, tipoImagen = usuarios / estudiantes, imagen = nombre de imagen
     console.log({__dirname,pathImagen})
     if (fileSystem.existsSync(pathImagen)) {
       return res.sendFile(pathImagen);

@@ -138,6 +138,6 @@ ServiciosAdmRoutes.delete("/delete-serviceAdm/:id", async (req: any, res: Respon
         error,
       });
     }
-  });
+});
 
 export default ServiciosAdmRoutes;
