@@ -22,13 +22,13 @@ app.use(fileUpload());
 
 
 
-userRoutes.get("/user", async (req: any, res: Response) => {
+userRoutes.get("/user", [], async (req: any, res: Response) => {
   try {
     let desde = req.query.desde || 0;
     desde = Number(desde);
     const users = await Usuario.find({}, "name email _id img created")
       .skip(desde)
-      .limit(5)
+      .limit(15)
       .exec();
     const usersNumbers = await Usuario.countDocuments({});
     return res.status(200).json({
@@ -42,48 +42,66 @@ userRoutes.get("/user", async (req: any, res: Response) => {
   }
 });
 
+userRoutes.get("/user/:id", [], async (req: any, res: Response) => {
+  try {
+    let desde = req.query.desde || 0;
+    let {id} = req.params;
+    desde = Number(desde);
+    const user = await Usuario.findById(id)
+      .skip(desde)
+      .exec();
+    return res.status(200).json({
+      ok: true,
+      mensaje: "Todo funciona bien",
+      user
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 userRoutes.post("/create-user", [], async (req: Request, res: Response) => {
-    try {
-      const { name, email, password } = req.body;
-      if (
-        !validator.isEmpty(name) &&
-        !validator.isEmpty(email) &&
-        !validator.isEmpty(password)
-      ) {
-        const user = {
-          name,
-          email,
-          password: bcrypt.hashSync(password, 10),
-        };
+  try {
+    const { name, email, password } = req.body;
+    if (
+      !validator.isEmpty(name) &&
+      !validator.isEmpty(email) &&
+      !validator.isEmpty(password)
+    ) {
+      const user = {
+        name,
+        email,
+        password: bcrypt.hashSync(password, 10),
+      };
 
-        const userEmailExist = await Usuario.findOne({ email: email }).exec();
-        if (userEmailExist) {
-          return res.status(400).json({
-            ok: false,
-            message: `El usuario con el correo ${email} ya existe en el sistema`
-          });
-        }
-
-        const userCreated = await Usuario.create(user);
-        return res.status(201).json({
-          ok: true,
-          message: "user guardado",
-          userCreated,
-        });
-      } else {
+      const userEmailExist = await Usuario.findOne({ email: email }).exec();
+      if (userEmailExist) {
         return res.status(400).json({
           ok: false,
-          message: "Los datos no son validos",
+          message: `El usuario con el correo ${email} ya existe en el sistema`
         });
       }
-    } catch (error) {
-      // console.log(error);
-      return res.status(500).json({
-        message: "Faltan datos por enviar",
-        error,
+
+      const userCreated = await Usuario.create(user);
+      return res.status(201).json({
+        ok: true,
+        message: "user guardado",
+        userCreated,
+      });
+    } else {
+      return res.status(400).json({
+        ok: false,
+        message: "Los datos no son validos",
       });
     }
+  } catch (error) {
+    // console.log(error);
+    return res.status(500).json({
+      message: "Faltan datos por enviar",
+      error,
+    });
   }
+}
 );
 
 userRoutes.post("/login", async (req: Request, res: Response) => {
@@ -132,7 +150,7 @@ userRoutes.post("/login", async (req: Request, res: Response) => {
   }
 });
 
-userRoutes.put("/update-user/:id", async (req: any, res: Response) => {
+userRoutes.put("/update-user/:id", [verificaToken], async (req: any, res: Response) => {
   const { id } = req.params;
   try {
     const { name, email } = req.body;
@@ -173,7 +191,7 @@ userRoutes.put("/update-user/:id", async (req: any, res: Response) => {
       errors: { message: "No existe un usuario con ese ID" },
     });
   }
-    
+
 });
 
 
@@ -184,7 +202,7 @@ userRoutes.delete("/delete-user/:id", async (req: any, res: Response) => {
     if (userDeleted) {
       res.status(204).json({
         ok: true,
-        mensaje: "Pc eiminado exitosamente",
+        mensaje: "User eiminado exitosamente",
         userDeleted,
       });
       return [];
@@ -206,7 +224,7 @@ userRoutes.delete("/delete-user/:id", async (req: any, res: Response) => {
   }
 });
 
-userRoutes.put("/upload-img/:id",[fileUploadUpload] ,async (req: any, res: Response) => {
+userRoutes.put("/upload-img/:id", [fileUploadUpload], async (req: any, res: Response) => {
   const { id } = req.params;
   try {
     if (!req.files || Object.keys(req.files).length === 0) {
@@ -235,11 +253,11 @@ userRoutes.put("/upload-img/:id",[fileUploadUpload] ,async (req: any, res: Respo
         },
       });
     }
-    
+
     const idUnico = uniqid();
     const nombreImagenPersonalizado = `${idUnico}.${extensionArchivo}`;
     const Path = `./uploads/${nombreImagenPersonalizado}`;
-  
+
     // copydir(path, '../../dist/uploads', {
     //   utimes: true,  // keep add time and modify time
     //   mode: true,    // keep file mode
@@ -254,7 +272,7 @@ userRoutes.put("/upload-img/:id",[fileUploadUpload] ,async (req: any, res: Respo
     // console.log({__dirname,currentPath, destinationPath})
     // var source = fileSystem.createReadStream(currentPath);
     // var dest = fileSystem.createWriteStream(destinationPath);
-    
+
     // source.pipe(dest);
     // source.on('end', function() { /* copied */ });
     // source.on('error', function(err) { /* error */ });
@@ -268,17 +286,17 @@ userRoutes.put("/upload-img/:id",[fileUploadUpload] ,async (req: any, res: Respo
 
     nombreArchivo.mv(Path, (err: any) => {
       if (err) {
-        console.log({err})
+        console.log({ err })
         return res.status(500).json({
-            ok: false,
-            mensaje: "Error al mover archivo",
-            errors: err
+          ok: false,
+          mensaje: "Error al mover archivo",
+          errors: err
         });
       }
-      subirImg( id, nombreImagenPersonalizado, res);
+      subirImg(id, nombreImagenPersonalizado, res);
     });
-  
-   
+
+
   } catch (error) {
     return res.status(500).json({
       ok: false,
@@ -291,19 +309,19 @@ userRoutes.put("/upload-img/:id",[fileUploadUpload] ,async (req: any, res: Respo
 userRoutes.get("/get-img-user/:imagen", (req, res, next) => {
   const { imagen } = req.params;
   try {
- 
+
     // Creacion del path  __dirname(toda la ruta donde se encuentra en este momento), `referencia a donde se encuentra la imagen`
     // const pathImagen = path.resolve(__dirname, `../../../uploads/${imagen}`); // Resolver el path para que siempre quede correcto, tipoImagen = usuarios / estudiantes, imagen = nombre de imagen
     const pathImagen = path.resolve(__dirname, `../../../uploads/${imagen}`); // Resolver el path para que siempre quede correcto, tipoImagen = usuarios / estudiantes, imagen = nombre de imagen
-    console.log({__dirname,pathImagen})
+    console.log({ __dirname, pathImagen })
     if (fileSystem.existsSync(pathImagen)) {
       return res.sendFile(pathImagen);
     } else {
-      const pathNoImage = path.resolve(__dirname, `../../assets/no-img.jpg`);
+      const pathNoImage = path.resolve(__dirname, `../../../assets/no-img.jpg`);
       return res.sendFile(pathNoImage);
     }
 
-  } catch (error) {} 
+  } catch (error) { }
 });
 
 export default userRoutes;
